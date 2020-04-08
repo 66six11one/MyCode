@@ -1,0 +1,390 @@
+[自己写的代码]：
+
+// 斗牛
+#include <iostream>
+#include<string>
+#include<ctime>
+using namespace std;
+const int J = 11;
+const int Q = 12;
+const int K = 13;
+const int A = 1;
+
+
+struct FC//花色(flower color)
+{
+   string name;//花色名
+   int FC_value;//花色等级值
+};
+struct Card//一张牌
+{
+    int value;//数字
+    FC fc;//花色flower color
+};
+struct Five_Card//五张牌
+{
+   Card a;
+   Card b;
+   Card c;
+   Card d;
+   Card e;
+};
+bool operator<(const Card & a,const Card & b)//重载<运算符
+{
+   if (a.value<b.value)
+  {
+    return true;
+  }
+  else if (a.value==b.value&&a.fc.FC_value<b.fc.FC_value)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+
+bool operator>(const Card & a, const Card & b)//重载>运算符
+{
+  if (a.value > b.value)
+  {
+     return true;
+  }
+  else if (a.value == b.value&&a.fc.FC_value > b.fc.FC_value)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+
+}
+
+
+void Sort(Five_Card & object);//排序(对于5张牌)
+void sort(int array_name[], int num);//排序(对于数组)
+int Deter(Five_Card & object);//确定牛数
+void Ratio_size(Five_Card & object_one,Five_Card & object_two);//比较大小
+Five_Card RC();//Random card:产生随机牌
+void show(Five_Card & object);
+
+
+int main()
+{
+Five_Card object1 = RC();
+Five_Card object2 = RC();
+Sort(object1);
+Sort(object2);
+show(object2);
+show(object1);
+Ratio_size(object1, object2);
+return 0;
+}
+
+
+void Sort(Five_Card & object)//从大到小排序
+{
+Card c_arr[5]{ object.a,object.b,object.c,object.d,object.e };
+for (int i = 0; i < 5; i++)
+{
+   for (int j = i+1; j < 5; j++)
+   {
+      if (c_arr[i]<c_arr[j])
+      {
+         swap(c_arr[i], c_arr[j]);
+      }
+   }
+}
+Card *p = &object.a;
+ for (int i = 0; i < 5; i++)
+ {
+    *p = c_arr[i];
+     p++;
+ }
+}
+
+
+int Deter(Five_Card & object)
+{
+int array_name[5]{ object.a.value,object.b.value,object.c.value,object.d.value,object.e.value };
+//一：去除10JQK
+int num = 0;
+for (int i = 0; i < 5; i++)
+{
+    if (array_name[i]== J || array_name[i]== Q || array_name[i]== K || array_name[i]== 10)
+    {
+        array_name[i]= '\0';
+         num++;
+    }
+}
+switch (num)
+{
+case 0://没有10JQK（有牛的情况是任意3张加起来等于10或者20）
+{
+bool object_two = false;
+for (int i = 0; i <5; i++)
+{
+   for (int j = i + 1; j <5; j++)
+  {
+     for (int k = j + 1; k <5; k++)
+     {
+         if (array_name[i] + array_name[j] + array_name[k] == 10 || array_name[i] + array_name[j] + array_name[k] == 20)//3张等于10或者20
+{
+
+   //清除3个值，并进行排序
+   array_name[i] = '\0';
+   array_name[j] = '\0';
+   array_name[k] = '\0';
+   sort(array_name,5);
+   int sum = array_name[0] + array_name[1];
+   if (sum > 10)
+   {
+      return sum - 10;
+   }
+   else
+   {
+      return sum;
+    }
+    object_two = true;
+   }
+  }
+ }
+}
+ if (object_two == false)
+ {
+    return 0;
+ }
+}
+break;
+
+
+case 1://只有1张10JQK
+{
+   bool object_1 = false;
+   for (int i = 0; i <5; i++)
+   {
+      for (int j = i + 1; j < 5; j++)
+      {
+         for (int k = j + 1; k < 5; k++)
+         {
+             if (array_name[i] + array_name[j] == 10)//2张等于10
+             {
+                array_name[i] = '\0';
+                array_name[j] = '\0';
+                Sort(object);
+                int sum = array_name[0] + array_name[1];
+                if (sum > 10)
+                {
+                    return sum - 10;
+                 }
+                 else
+                 {
+                    return sum;
+                  }
+                 object_1 = true;
+              }
+if (array_name[i] + array_name[j] + array_name[k] == 10 || array_name[i] + array_name[j] + array_name[k] == 20)//3张等于10或者20
+    {
+       Sort(object);
+       return array_name[0];
+       object_1 = true;
+    }
+  }
+ }
+}
+if (object_1 == false)
+{
+    return 0;
+}
+break;
+}
+
+
+case 2://只有2张10JQK
+if (array_name[0] + array_name[1] + array_name[2] == 10 || array_name[0] + array_name[1] + array_name[2] == 20)
+{
+    return 10;
+}
+else if (array_name[0] + array_name[1] == 10)
+{
+   return array_name[2];
+}
+else if (array_name[1] + array_name[2] == 10)
+{
+   return array_name[0];
+}
+else if (array_name[0] + array_name[2] == 10)
+{
+   return array_name[1];
+}
+else
+{
+   return 0;
+}
+break;
+
+
+case 3://3张10JQK
+{
+   int sum = array_name[0] + array_name[1];
+   if (sum > 10)
+   {
+      return sum - 10;
+    }
+    else if (sum == 10)
+    {
+       return 10;
+     }
+     else
+     {
+        return sum;
+     }
+break;
+}
+case 4://4张10JQK
+        return array_name[0];
+        break;
+case 5://全是10JQK
+          return 10;
+          break;
+  }
+}
+
+
+void Ratio_size(Five_Card & object_one, Five_Card & object_two)
+{
+    if (Deter(object_one)>Deter(object_two))
+   {
+      show(object_one);
+      cout << "大";
+    }
+    else if (Deter(object_one)==Deter(object_two))//牛数相等
+    {
+       //对2个对象进行排序
+       Sort(object_one);
+       Sort(object_two);
+        int i = 0;
+        while (i<5)
+        {
+           Card *p1 = &object_one.a;
+           Card *p2 = &object_two.a;
+           //只考虑一副牌
+           if (p1->value> p2->value)//最大值相比较
+           {
+               show(object_one);
+               cout << "大";
+               break;
+           }
+          else if (p1->value < p2->value)
+          {
+             show(object_two);
+             cout << "大";
+             break;
+           }
+
+           //如果最大值相同就比花色
+           else if (p1->value==p2->value&&p1->fc.FC_value > p2->fc.FC_value)
+          {
+             show(object_one);
+             cout << "大";
+             break;
+           }
+           else if (p1->value == p2->value&&p1->fc.FC_value < p2->fc.FC_value)
+          {
+             show(object_two);
+             cout << "大";
+             break;
+          }
+             p1++;
+             p2++;
+             i++;
+           } 
+         }
+         else
+         {
+           show(object_two);
+           cout << "大";
+
+            break；
+          }
+ }
+
+
+Five_Card RC()
+{
+    int shuzu[13]{ 2,3,4,5,6,7,8,9,10,J,Q,K,A };
+    string arr[4]{ "黑桃","红桃","梅花","方块" };
+    Five_Card AIO;//all in one:一个整体
+    Card *p = &AIO.a;
+    for (int i = 0; i < 5; i++)
+    {
+       int value_one = rand() % 13;//产生一个0-12的随机数
+       int value_two = rand() % 4;//产生一个0-3的随机数
+       Card object;
+       object.value = shuzu[value_one];
+       object.fc.name = arr[value_two];
+       //确定每一张牌的花色以及等级值
+       if (object.fc.name == "黑桃")
+       {
+           object.fc.FC_value = 4;
+        }
+        else if (object.fc.name == "红桃")
+       {
+           object.fc.FC_value = 3;
+        }
+       else if (object.fc.name == "梅花")
+       {
+          object.fc.FC_value = 2;
+        }
+       else
+       {
+          object.fc.FC_value = 1;
+        }
+      *p = object;
+       p++;
+   }
+  return AIO;
+}
+
+
+void show(Five_Card & object)
+{
+   Card *p = &object.a;
+   int i = 0;
+   while (i<5)
+   {
+     cout << "第" << i + 1 << "张牌为" << p->fc.name << '\0' << p->value << '\0' << endl;
+     p++;
+     i++;
+   }
+   cout << "当前为牛" << Deter(object) << endl;
+}
+
+
+void sort(int array_name[], int num)
+{
+   for (int i = 0; i < num; i++)
+   {
+      for (int j = i + 1; j < num; j++)
+      {
+         if (array_name[i]<array_name[j])
+         {
+            int value = array_name[i];
+            array_name[i] = array_name[j];
+            array_name[j] = value;
+          }
+      }
+
+   }
+}
+
+功能描述：通过产生随机数来获取5张牌，可以通过排序、获取5张牌的牛数比大小得到相应的结果
+
+
+  
+
+
+ 
